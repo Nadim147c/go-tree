@@ -91,71 +91,92 @@ func findHelper(node Node, filter func(Node) bool) (Node, bool) {
 //   - filter: A function that determines if a value matches the search criteria
 //
 // Returns:
-//   - The first matching value, or nil if no match is found
-func Find(tree any, filter func(Node) bool) any {
+//   - The first matching value, or error if no match is found or tree is nil.
+func Find(tree any, filter func(Node) bool) (any, error) {
 	if tree == nil {
-		return nil
+		return nil, ErrNilTree
 	}
 
 	node := newNode("", "", reflect.ValueOf(tree))
 	if v, exists := findHelper(node, filter); exists {
-		return v.Interface
+		return v.Interface, nil
 	}
-	return nil
+
+	return nil, ErrNotFound
 }
 
 // FindString searches for the first string value that matches the filter.
-// Returns the string and true if found, otherwise empty string and false.
-func FindString(tree any, filter func(Node) bool) (string, bool) {
+// Returns the string if found, otherwise returns an error.
+func FindString(tree any, filter func(Node) bool) (string, error) {
+	if tree == nil {
+		return "", ErrNilTree
+	}
+
 	node := newNode("", "", reflect.ValueOf(tree))
 	val, ok := findHelper(node, FilterString(filter))
 	if !ok || val.Interface == nil {
-		return "", false
+		return "", ErrNotFound
 	}
 
-	return val.Value.String(), true
+	return val.Value.String(), nil
 }
 
-// FindInt searches for the first int value that matches the filter.
-// Returns the int64 and true if found, otherwise zero and false.
-func FindInt(tree any, filter func(Node) bool) (int64, bool) {
-	node := newNode("", "", reflect.ValueOf(tree))
-	val, ok := findHelper(node, FilterInt(filter))
-	if !ok || val.Interface == nil {
-		return 0, false
+// FindBool searches for the first bool value that matches the filter. Returns
+// the bool if found, otherwise returns an error.
+func FindBool(tree any, filter func(Node) bool) (bool, error) {
+	if tree == nil {
+		return false, ErrNilTree
 	}
-	return val.Value.Int(), true
-}
 
-// FindUint searches for the first uint value that matches the filter.
-// Returns the uint64 and true if found, otherwise zero and false.
-func FindUint(tree any, filter func(Node) bool) (uint64, bool) {
-	node := newNode("", "", reflect.ValueOf(tree))
-	val, ok := findHelper(node, FilterUint(filter))
-	if !ok || val.Interface == nil {
-		return 0, false
-	}
-	return val.Value.Uint(), true
-}
-
-// FindFloat searches for the first float value that matches the filter.
-// Returns the float64 and true if found, otherwise zero and false.
-func FindFloat(tree any, filter func(Node) bool) (float64, bool) {
-	node := newNode("", "", reflect.ValueOf(tree))
-	val, ok := findHelper(node, FilterFloat(filter))
-	if !ok || val.Interface == nil {
-		return 0, false
-	}
-	return val.Value.Float(), true
-}
-
-// FindBool searches for the first bool value that matches the filter.
-// Returns the bool and true if found, otherwise false and false.
-func FindBool(tree any, filter func(Node) bool) (bool, bool) {
 	node := newNode("", "", reflect.ValueOf(tree))
 	val, ok := findHelper(node, FilterBool(filter))
 	if !ok || val.Interface == nil {
-		return false, false
+		return false, ErrNotFound
 	}
-	return val.Value.Bool(), true
+	return val.Value.Bool(), nil
+}
+
+// FindInt searches for the first int value that matches the filter. Returns the
+// int64 if found, otherwise returns an error.
+func FindInt(tree any, filter func(Node) bool) (int64, error) {
+	if tree == nil {
+		return 0, ErrNilTree
+	}
+
+	node := newNode("", "", reflect.ValueOf(tree))
+	val, ok := findHelper(node, FilterInt(filter))
+	if !ok || val.Interface == nil {
+		return 0, ErrNotFound
+	}
+	return val.Value.Int(), nil
+}
+
+// FindUint searches for the first uint value that matches the filter. Returns
+// the uint64 if found, otherwise returns an error.
+func FindUint(tree any, filter func(Node) bool) (uint64, error) {
+	if tree == nil {
+		return 0, ErrNilTree
+	}
+
+	node := newNode("", "", reflect.ValueOf(tree))
+	val, ok := findHelper(node, FilterUint(filter))
+	if !ok || val.Interface == nil {
+		return 0, ErrNotFound
+	}
+	return val.Value.Uint(), nil
+}
+
+// FindFloat searches for the first float value that matches the filter. Returns
+// the float64 if found, otherwise returns an error.
+func FindFloat(tree any, filter func(Node) bool) (float64, error) {
+	if tree == nil {
+		return 0, ErrNilTree
+	}
+
+	node := newNode("", "", reflect.ValueOf(tree))
+	val, ok := findHelper(node, FilterFloat(filter))
+	if !ok || val.Interface == nil {
+		return 0, ErrNotFound
+	}
+	return val.Value.Float(), nil
 }

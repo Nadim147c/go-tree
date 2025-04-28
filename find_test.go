@@ -138,7 +138,7 @@ func TestFindFunctions(t *testing.T) {
 
 		for _, tt := range tests {
 			t.Run(tt.name, func(t *testing.T) {
-				got := Find(tt.tree, tt.filter)
+				got, _ := Find(tt.tree, tt.filter)
 				if !reflect.DeepEqual(got, tt.want) {
 					t.Errorf("Find() = %v, want %v", got, tt.want)
 				}
@@ -185,7 +185,7 @@ func TestFindFunctions(t *testing.T) {
 				name: "Find string by condition",
 				tree: testData,
 				filter: func(n Node) bool {
-					if n.Key == "name" && n.Value.Kind() == reflect.String {
+					if n.Key == "name" {
 						return strings.Contains(n.Value.String(), "ice")
 					}
 					return false
@@ -215,9 +215,9 @@ func TestFindFunctions(t *testing.T) {
 
 		for _, tt := range tests {
 			t.Run(tt.name, func(t *testing.T) {
-				gotValue, gotFound := FindString(tt.tree, tt.filter)
-				if gotValue != tt.wantValue || gotFound != tt.wantFound {
-					t.Errorf("FindString() = (%v, %v), want (%v, %v)", gotValue, gotFound, tt.wantValue, tt.wantFound)
+				got, err := FindString(tt.tree, tt.filter)
+				if got != tt.wantValue || (err == nil) != tt.wantFound {
+					t.Errorf("FindString() = (%v, %v), want (%v, %v)", got, err, tt.wantValue, tt.wantFound)
 				}
 			})
 		}
@@ -301,9 +301,9 @@ func TestFindFunctions(t *testing.T) {
 
 		for _, tt := range tests {
 			t.Run(tt.name, func(t *testing.T) {
-				gotValue, gotFound := FindInt(tt.tree, tt.filter)
-				if gotValue != tt.wantValue || gotFound != tt.wantFound {
-					t.Errorf("FindInt() = (%v, %v), want (%v, %v)", gotValue, gotFound, tt.wantValue, tt.wantFound)
+				gotValue, err := FindInt(tt.tree, tt.filter)
+				if gotValue != tt.wantValue || (err == nil) != tt.wantFound {
+					t.Errorf("FindInt() = (%v, %v), want (%v, %v)", gotValue, err, tt.wantValue, tt.wantFound)
 				}
 			})
 		}
@@ -378,9 +378,9 @@ func TestFindFunctions(t *testing.T) {
 
 		for _, tt := range tests {
 			t.Run(tt.name, func(t *testing.T) {
-				gotValue, gotFound := FindFloat(tt.tree, tt.filter)
-				if gotValue != tt.wantValue || gotFound != tt.wantFound {
-					t.Errorf("FindFloat() = (%v, %v), want (%v, %v)", gotValue, gotFound, tt.wantValue, tt.wantFound)
+				gotValue, got := FindFloat(tt.tree, tt.filter)
+				if gotValue != tt.wantValue || (got == nil) != tt.wantFound {
+					t.Errorf("FindFloat() = (%v, %v), want (%v, %v)", gotValue, got, tt.wantValue, tt.wantFound)
 				}
 			})
 		}
@@ -446,9 +446,9 @@ func TestFindFunctions(t *testing.T) {
 
 		for _, tt := range tests {
 			t.Run(tt.name, func(t *testing.T) {
-				gotValue, gotFound := FindBool(tt.tree, tt.filter)
-				if gotValue != tt.wantValue || gotFound != tt.wantFound {
-					t.Errorf("FindBool() = (%v, %v), want (%v, %v)", gotValue, gotFound, tt.wantValue, tt.wantFound)
+				gotValue, err := FindBool(tt.tree, tt.filter)
+				if gotValue != tt.wantValue || (err == nil) != tt.wantFound {
+					t.Errorf("FindBool() = (%v, %v), want (%v, %v)", gotValue, err, tt.wantValue, tt.wantFound)
 				}
 			})
 		}
@@ -523,9 +523,9 @@ func TestFindFunctions(t *testing.T) {
 
 		for _, tt := range tests {
 			t.Run(tt.name, func(t *testing.T) {
-				gotValue, gotFound := FindUint(tt.tree, tt.filter)
-				if gotValue != tt.wantValue || gotFound != tt.wantFound {
-					t.Errorf("FindUint() = (%v, %v), want (%v, %v)", gotValue, gotFound, tt.wantValue, tt.wantFound)
+				gotValue, err := FindUint(tt.tree, tt.filter)
+				if gotValue != tt.wantValue || (err == nil) != tt.wantFound {
+					t.Errorf("FindUint() = (%v, %v), want (%v, %v)", gotValue, err, tt.wantValue, tt.wantFound)
 				}
 			})
 		}

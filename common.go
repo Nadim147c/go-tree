@@ -1,6 +1,14 @@
 package gotree
 
-import "reflect"
+import (
+	"errors"
+	"reflect"
+)
+
+var (
+	ErrNilTree  = errors.New("tree is nil")
+	ErrNotFound = errors.New("No item found")
+)
 
 // FilterFunc defines a function type that takes a Node and returns a boolean
 // value indicating whether the node satisfies certain conditions.
