@@ -9,7 +9,7 @@ import (
 // matches the filter function. It traverses maps, slices, arrays, structs, and
 // interfaces through type reflection. When a matching node is found (filter
 // returns true), it immediately returns that value and stops traversal.
-func findHelper(node Node, filter func(Node) bool) (Node, bool) {
+func findHelper(node Node, filter FilterFunc) (Node, bool) {
 	switch node.Value.Kind() {
 	case reflect.Map:
 		for _, k := range node.Value.MapKeys() {
@@ -92,7 +92,7 @@ func findHelper(node Node, filter func(Node) bool) (Node, bool) {
 //
 // Returns:
 //   - The first matching value, or error if no match is found or tree is nil.
-func Find(tree any, filter func(Node) bool) (any, error) {
+func Find(tree any, filter FilterFunc) (any, error) {
 	if tree == nil {
 		return nil, ErrNilTree
 	}
@@ -107,7 +107,7 @@ func Find(tree any, filter func(Node) bool) (any, error) {
 
 // FindString searches for the first string value that matches the filter.
 // Returns the string if found, otherwise returns an error.
-func FindString(tree any, filter func(Node) bool) (string, error) {
+func FindString(tree any, filter FilterFunc) (string, error) {
 	if tree == nil {
 		return "", ErrNilTree
 	}
@@ -123,7 +123,7 @@ func FindString(tree any, filter func(Node) bool) (string, error) {
 
 // FindBool searches for the first bool value that matches the filter. Returns
 // the bool if found, otherwise returns an error.
-func FindBool(tree any, filter func(Node) bool) (bool, error) {
+func FindBool(tree any, filter FilterFunc) (bool, error) {
 	if tree == nil {
 		return false, ErrNilTree
 	}
@@ -138,7 +138,7 @@ func FindBool(tree any, filter func(Node) bool) (bool, error) {
 
 // FindInt searches for the first int value that matches the filter. Returns the
 // int64 if found, otherwise returns an error.
-func FindInt(tree any, filter func(Node) bool) (int64, error) {
+func FindInt(tree any, filter FilterFunc) (int64, error) {
 	if tree == nil {
 		return 0, ErrNilTree
 	}
@@ -153,7 +153,7 @@ func FindInt(tree any, filter func(Node) bool) (int64, error) {
 
 // FindUint searches for the first uint value that matches the filter. Returns
 // the uint64 if found, otherwise returns an error.
-func FindUint(tree any, filter func(Node) bool) (uint64, error) {
+func FindUint(tree any, filter FilterFunc) (uint64, error) {
 	if tree == nil {
 		return 0, ErrNilTree
 	}
@@ -168,7 +168,7 @@ func FindUint(tree any, filter func(Node) bool) (uint64, error) {
 
 // FindFloat searches for the first float value that matches the filter. Returns
 // the float64 if found, otherwise returns an error.
-func FindFloat(tree any, filter func(Node) bool) (float64, error) {
+func FindFloat(tree any, filter FilterFunc) (float64, error) {
 	if tree == nil {
 		return 0, ErrNilTree
 	}
