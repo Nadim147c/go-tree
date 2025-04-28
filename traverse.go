@@ -94,34 +94,37 @@ func traverseHelper(node Node, filter FilterFunc) []Node {
 //   - filter: A function that determines which values to include in the results
 //
 // Returns:
-//   - A slice containing all values that passed the filter function
-func Traverse(tree any, filter FilterFunc) []any {
+//   - The a slice matching value, or error if no match is found or tree is nil.
+func Traverse(tree any, filter FilterFunc) ([]any, error) {
 	if tree == nil {
-		return []any{}
+		return []any{}, ErrNilTree
 	}
 	node := newNode("", "", reflect.ValueOf(tree))
 	nodes := traverseHelper(node, filter)
+
+	if len(nodes) == 0 {
+		return []any{}, ErrNotFound
+	}
 
 	values := make([]any, len(nodes))
 	for i, v := range nodes {
 		values[i] = v.Interface
 	}
-	return values
+	return values, nil
 }
 
 // TraverseString searches for all string values in the tree that match the
-// filter. Returns a slice of matching string values and true if any found,
-// otherwise empty slice and false.
-func TraverseString(tree any, filter FilterFunc) ([]string, bool) {
+// filter. Returns a slice of matching string values and an error if none found.
+func TraverseString(tree any, filter FilterFunc) ([]string, error) {
 	if tree == nil {
-		return []string{}, false
+		return nil, ErrNilTree
 	}
 
 	node := newNode("", "", reflect.ValueOf(tree))
 	nodes := traverseHelper(node, FilterString(filter))
 
 	if len(nodes) == 0 {
-		return []string{}, false
+		return nil, ErrNotFound
 	}
 
 	values := make([]string, len(nodes))
@@ -129,22 +132,22 @@ func TraverseString(tree any, filter FilterFunc) ([]string, bool) {
 		values[i] = v.Value.String()
 	}
 
-	return values, true
+	return values, nil
 }
 
 // TraverseBool searches for all boolean values in the tree that match the
-// filter. Returns a slice of matching boolean values and true if any found,
-// otherwise empty slice and false.
-func TraverseBool(tree any, filter FilterFunc) ([]bool, bool) {
+// filter. Returns a slice of matching boolean values and an error if none
+// found.
+func TraverseBool(tree any, filter FilterFunc) ([]bool, error) {
 	if tree == nil {
-		return []bool{}, false
+		return nil, ErrNilTree
 	}
 
 	node := newNode("", "", reflect.ValueOf(tree))
 	nodes := traverseHelper(node, FilterBool(filter))
 
 	if len(nodes) == 0 {
-		return []bool{}, false
+		return nil, ErrNotFound
 	}
 
 	values := make([]bool, len(nodes))
@@ -152,22 +155,22 @@ func TraverseBool(tree any, filter FilterFunc) ([]bool, bool) {
 		values[i] = v.Value.Bool()
 	}
 
-	return values, true
+	return values, nil
 }
 
 // TraverseInt searches for all integer values in the tree that match the
-// filter. Returns a slice of matching integer values and true if any found,
-// otherwise empty slice and false.
-func TraverseInt(tree any, filter FilterFunc) ([]int64, bool) {
+// filter. Returns a slice of matching integer values and an error if none
+// found.
+func TraverseInt(tree any, filter FilterFunc) ([]int64, error) {
 	if tree == nil {
-		return []int64{}, false
+		return nil, ErrNilTree
 	}
 
 	node := newNode("", "", reflect.ValueOf(tree))
 	nodes := traverseHelper(node, FilterInt(filter))
 
 	if len(nodes) == 0 {
-		return []int64{}, false
+		return nil, ErrNotFound
 	}
 
 	values := make([]int64, len(nodes))
@@ -175,22 +178,22 @@ func TraverseInt(tree any, filter FilterFunc) ([]int64, bool) {
 		values[i] = v.Value.Int()
 	}
 
-	return values, true
+	return values, nil
 }
 
 // TraverseUint searches for all unsigned integer values in the tree that match
-// the filter. Returns a slice of matching unsigned integer values and true if
-// any found, otherwise empty slice and false.
-func TraverseUint(tree any, filter FilterFunc) ([]uint64, bool) {
+// the filter. Returns a slice of matching unsigned integer values and an error
+// if none found.
+func TraverseUint(tree any, filter FilterFunc) ([]uint64, error) {
 	if tree == nil {
-		return []uint64{}, false
+		return nil, ErrNilTree
 	}
 
 	node := newNode("", "", reflect.ValueOf(tree))
 	nodes := traverseHelper(node, FilterUint(filter))
 
 	if len(nodes) == 0 {
-		return []uint64{}, false
+		return nil, ErrNotFound
 	}
 
 	values := make([]uint64, len(nodes))
@@ -198,22 +201,22 @@ func TraverseUint(tree any, filter FilterFunc) ([]uint64, bool) {
 		values[i] = v.Value.Uint()
 	}
 
-	return values, true
+	return values, nil
 }
 
 // TraverseFloat searches for all floating point values in the tree that match
-// the filter. Returns a slice of matching float values and true if any found,
-// otherwise empty slice and false.
-func TraverseFloat(tree any, filter FilterFunc) ([]float64, bool) {
+// the filter. Returns a slice of matching float values and an error if none
+// found.
+func TraverseFloat(tree any, filter FilterFunc) ([]float64, error) {
 	if tree == nil {
-		return []float64{}, false
+		return nil, ErrNilTree
 	}
 
 	node := newNode("", "", reflect.ValueOf(tree))
 	nodes := traverseHelper(node, FilterFloat(filter))
 
 	if len(nodes) == 0 {
-		return []float64{}, false
+		return nil, ErrNotFound
 	}
 
 	values := make([]float64, len(nodes))
@@ -221,5 +224,5 @@ func TraverseFloat(tree any, filter FilterFunc) ([]float64, bool) {
 		values[i] = v.Value.Float()
 	}
 
-	return values, true
+	return values, nil
 }

@@ -105,9 +105,7 @@ func TestTraverseFunctions(t *testing.T) {
 
 		for _, tt := range tests {
 			t.Run(tt.name, func(t *testing.T) {
-				got := Traverse(tt.tree, tt.filter)
-
-				// Check length
+				got, _ := Traverse(tt.tree, tt.filter)
 				if len(got) != len(tt.want) {
 					t.Errorf("Traverse() length = %v, want %v", len(got), len(tt.want))
 					return
@@ -185,10 +183,10 @@ func TestTraverseFunctions(t *testing.T) {
 
 		for _, tt := range tests {
 			t.Run(tt.name, func(t *testing.T) {
-				got, gotFound := TraverseString(tt.tree, tt.filter)
+				got, err := TraverseString(tt.tree, tt.filter)
 
-				if gotFound != tt.wantFound {
-					t.Errorf("TraverseString() found = %v, want %v", gotFound, tt.wantFound)
+				if (err == nil) != tt.wantFound {
+					t.Errorf("TraverseString() found = %v, want %v", err, tt.wantFound)
 					return
 				}
 
@@ -252,10 +250,10 @@ func TestTraverseFunctions(t *testing.T) {
 
 		for _, tt := range tests {
 			t.Run(tt.name, func(t *testing.T) {
-				got, gotFound := TraverseInt(tt.tree, tt.filter)
+				got, err := TraverseInt(tt.tree, tt.filter)
 
-				if gotFound != tt.wantFound {
-					t.Errorf("TraverseInt() found = %v, want %v", gotFound, tt.wantFound)
+				if (err == nil) != tt.wantFound {
+					t.Errorf("TraverseInt() found = %v, want %v", err, tt.wantFound)
 					return
 				}
 
@@ -319,10 +317,10 @@ func TestTraverseFunctions(t *testing.T) {
 
 		for _, tt := range tests {
 			t.Run(tt.name, func(t *testing.T) {
-				got, gotFound := TraverseFloat(tt.tree, tt.filter)
+				got, err := TraverseFloat(tt.tree, tt.filter)
 
-				if gotFound != tt.wantFound {
-					t.Errorf("TraverseFloat() found = %v, want %v", gotFound, tt.wantFound)
+				if (err == nil) != tt.wantFound {
+					t.Errorf("TraverseFloat() found = %v, want %v", err, tt.wantFound)
 					return
 				}
 
@@ -386,10 +384,10 @@ func TestTraverseFunctions(t *testing.T) {
 
 		for _, tt := range tests {
 			t.Run(tt.name, func(t *testing.T) {
-				got, gotFound := TraverseBool(tt.tree, tt.filter)
+				got, err := TraverseBool(tt.tree, tt.filter)
 
-				if gotFound != tt.wantFound {
-					t.Errorf("TraverseBool() found = %v, want %v", gotFound, tt.wantFound)
+				if (err == nil) != tt.wantFound {
+					t.Errorf("TraverseBool() found = %v, want %v", err, tt.wantFound)
 					return
 				}
 
@@ -453,10 +451,10 @@ func TestTraverseFunctions(t *testing.T) {
 
 		for _, tt := range tests {
 			t.Run(tt.name, func(t *testing.T) {
-				got, gotFound := TraverseUint(tt.tree, tt.filter)
+				got, err := TraverseUint(tt.tree, tt.filter)
 
-				if gotFound != tt.wantFound {
-					t.Errorf("TraverseUint() found = %v, want %v", gotFound, tt.wantFound)
+				if (err == nil) != tt.wantFound {
+					t.Errorf("TraverseUint() found = %v, want %v", err, tt.wantFound)
 					return
 				}
 
