@@ -6,6 +6,10 @@ import "reflect"
 // value indicating whether the node satisfies certain conditions.
 type FilterFunc func(Node) bool
 
+func NoneFilter(_ Node) bool {
+	return true
+}
+
 // FilterString returns a FilterFunc that checks if a node's value is a string
 // type and satisfies the provided filter condition.
 func FilterString(filter FilterFunc) FilterFunc {

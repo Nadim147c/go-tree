@@ -1,200 +1,469 @@
-package gotree_test
+package gotree
 
 import (
 	"reflect"
 	"strings"
 	"testing"
-
-	gotree "github.com/Nadim147c/go-tree"
 )
 
-func TestTraverse(t *testing.T) {
-	tests := []struct {
-		name   string
-		tree   any
-		filter func(gotree.Node) bool
-		want   []any
-	}{
-		{
-			name: "Simple map with strings",
-			tree: map[string]string{
-				"name":  "John",
-				"email": "john@example.com",
-			},
-			filter: func(n gotree.Node) bool {
-				return n.Key != "" // Include all non-root nodes
-			},
-			want: []any{"John", "john@example.com"},
-		},
-		{
-			name: "Nested map",
-			tree: map[string]any{
-				"user": map[string]any{
-					"name": "Alice",
-					"address": map[string]string{
-						"street": "123 Main St",
-						"city":   "Anytown",
-					},
-				},
-			},
-			filter: func(n gotree.Node) bool {
-				return strings.HasPrefix(n.FullKey, "user.address.")
-			},
-			want: []any{"123 Main St", "Anytown"},
-		},
-		{
-			name: "Filter by value type",
-			tree: map[string]any{
-				"id":    42,
-				"name":  "Product",
-				"price": 19.99,
-				"tags":  []string{"sale", "featured"},
-			},
-			filter: func(n gotree.Node) bool {
-				return n.Value.Kind() == reflect.Float64
-			},
-			want: []any{19.99},
-		},
-		{
-			name: "Array of primitives",
-			tree: []int{1, 2, 3, 4, 5},
-			filter: func(n gotree.Node) bool {
-				if n.Value.Kind() == reflect.Int {
-					return n.Value.Int()%2 == 0 // Only even numbers
-				}
-				return false
-			},
-			want: []any{2, 4},
-		},
-		{
-			name: "Array of objects",
-			tree: []map[string]any{
-				{"id": 1, "active": true},
-				{"id": 2, "active": false},
-				{"id": 3, "active": true},
-			},
-			filter: func(n gotree.Node) bool {
-				return n.Key == "active" && n.Value.Kind() == reflect.Bool && n.Value.Bool()
-			},
-			want: []any{true, true},
-		},
-		{
-			name: "Complex nested structure",
-			tree: map[string]any{
-				"company": map[string]any{
-					"name": "Acme Corp",
-					"departments": []map[string]any{
-						{
-							"name":     "Engineering",
-							"staff":    15,
-							"location": "Floor 3",
-						},
-						{
-							"name":     "Marketing",
-							"staff":    8,
-							"location": "Floor 2",
-						},
-					},
-					"founded": 1985,
-				},
-			},
-			filter: func(n gotree.Node) bool {
-				return strings.Contains(n.FullKey, ".departments[") && n.Value.Kind() == reflect.String && n.Key == "name"
-			},
-			want: []any{"Engineering", "Marketing"},
-		},
-		{
-			name: "Empty tree",
-			tree: map[string]string{},
-			filter: func(n gotree.Node) bool {
-				return true
-			},
-			want: []any{},
-		},
-		{
-			name: "Nil tree",
-			tree: nil,
-			filter: func(n gotree.Node) bool {
-				return true
-			},
-			want: []any{},
-		},
-		{
-			name: "Filter includes nothing",
-			tree: map[string]any{
-				"a": 1,
-				"b": 2,
-				"c": 3,
-			},
-			filter: func(n gotree.Node) bool {
-				return false // Filter out everything
-			},
-			want: []any{},
-		},
-		{
-			name: "Primitive value as root",
-			tree: "just a string",
-			filter: func(n gotree.Node) bool {
-				return n.Value.Kind() == reflect.String
-			},
-			want: []any{"just a string"},
-		},
-		{
-			name: "Deep nesting",
-			tree: map[string]any{
-				"level1": map[string]any{
-					"level2": map[string]any{
-						"level3": map[string]any{
-							"level4": map[string]any{
-								"target": "found me!",
-							},
-						},
-					},
-				},
-			},
-			filter: func(n gotree.Node) bool {
-				return n.Key == "target"
-			},
-			want: []any{"found me!"},
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got := gotree.Traverse(tt.tree, tt.filter)
-
-			// Compare slices without caring about order
-			if !compareSlicesIgnoreOrder(got, tt.want) {
-				t.Errorf("Traverse() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
-// compareSlicesIgnoreOrder compares two slices for equality without considering order
-func compareSlicesIgnoreOrder(a, b []any) bool {
+// EqualSlices checks if two slices have the same elements, regardless of order
+func EqualSlices[E comparable](t *testing.T, a, b []E) bool {
 	if len(a) != len(b) {
+		t.Logf("Unmatched length a = %d, b = %d", len(a), len(b))
 		return false
 	}
-
-	// Create maps to count occurrences of each element
-	countA := make(map[any]int)
-	countB := make(map[any]int)
-
-	for _, v := range a {
-		countA[v]++
+	if len(a) == 0 {
+		return true
 	}
 
-	for _, v := range b {
-		countB[v]++
+	counts := make(map[E]int)
+
+	for _, item := range a {
+		counts[item]++
 	}
 
-	// Check that counts match for all elements
-	for k, v := range countA {
-		if countB[k] != v {
+	for _, item := range b {
+		if counts[item] == 0 {
+			t.Log("Missing item", item)
 			return false
 		}
+		counts[item]--
 	}
 
 	return true
+}
+
+func TestTraverseFunctions(t *testing.T) {
+	t.Run("TestTraverse", func(t *testing.T) {
+		tests := []struct {
+			name   string
+			tree   any
+			filter func(Node) bool
+			want   []any
+		}{
+			{
+				name: "Traverse all strings",
+				tree: testData,
+				filter: func(n Node) bool {
+					return n.Value.Kind() == reflect.String
+				},
+				want: []any{
+					"hello world",
+					"nested value",
+					"array_string",
+					"found me",
+					"Alice",
+					"Bob",
+				},
+			},
+			{
+				name: "Traverse all integers",
+				tree: testData,
+				filter: func(n Node) bool {
+					return n.Value.Kind() == reflect.Int ||
+						n.Value.Kind() == reflect.Int32 ||
+						n.Value.Kind() == reflect.Int64
+				},
+				want: []any{42, int32(32), int64(64), 100, 123, 999, 30, 25},
+			},
+			{
+				name: "Traverse by key",
+				tree: testData,
+				filter: func(n Node) bool {
+					return n.Key == "name"
+				},
+				want: []any{"Alice", "Bob"},
+			},
+			{
+				name: "Traverse with specific condition",
+				tree: testData,
+				filter: func(n Node) bool {
+					if n.Value.Kind() == reflect.Float64 {
+						return n.Value.Float() > 100.0
+					}
+					return false
+				},
+				want: []any{123.456, 1250.50, 750.25},
+			},
+			{
+				name: "Traverse empty result",
+				tree: testData,
+				filter: func(n Node) bool {
+					return n.Key == "non_existent_key"
+				},
+				want: []any{},
+			},
+			{
+				name: "Traverse nil tree",
+				tree: nil,
+				filter: func(n Node) bool {
+					return true
+				},
+				want: []any{},
+			},
+		}
+
+		for _, tt := range tests {
+			t.Run(tt.name, func(t *testing.T) {
+				got := Traverse(tt.tree, tt.filter)
+
+				// Check length
+				if len(got) != len(tt.want) {
+					t.Errorf("Traverse() length = %v, want %v", len(got), len(tt.want))
+					return
+				}
+
+				if !EqualSlices(t, tt.want, got) {
+					t.Errorf("Traverse() = (%+v), want = (%+v)", got, tt.want)
+				}
+			})
+		}
+	})
+
+	t.Run("TestTraverseString", func(t *testing.T) {
+		tests := []struct {
+			name      string
+			tree      any
+			filter    func(Node) bool
+			want      []string
+			wantFound bool
+		}{
+			{
+				name:   "Traverse all strings",
+				tree:   testData,
+				filter: NoneFilter,
+				want: []string{
+					"hello world",
+					"nested value",
+					"array_string",
+					"found me",
+					"Alice",
+					"Bob",
+				},
+				wantFound: true,
+			},
+			{
+				name: "Traverse strings by containing 'e'",
+				tree: testData,
+				filter: func(n Node) bool {
+					return strings.Contains(n.Value.String(), "e")
+				},
+				want: []string{
+					"hello world",
+					"nested value",
+					"found me",
+					"Alice",
+				},
+				wantFound: true,
+			},
+			{
+				name: "Traverse strings by key",
+				tree: testData,
+				filter: func(n Node) bool {
+					return n.Key == "name"
+				},
+				want:      []string{"Alice", "Bob"},
+				wantFound: true,
+			},
+			{
+				name: "Traverse strings empty result",
+				tree: testData,
+				filter: func(n Node) bool {
+					return strings.Contains(n.Value.String(), "zzzzz")
+				},
+				want:      []string{},
+				wantFound: false,
+			},
+			{
+				name:      "Traverse strings nil tree",
+				tree:      nil,
+				filter:    NoneFilter,
+				want:      []string{},
+				wantFound: false,
+			},
+		}
+
+		for _, tt := range tests {
+			t.Run(tt.name, func(t *testing.T) {
+				got, gotFound := TraverseString(tt.tree, tt.filter)
+
+				if gotFound != tt.wantFound {
+					t.Errorf("TraverseString() found = %v, want %v", gotFound, tt.wantFound)
+					return
+				}
+
+				if !EqualSlices(t, tt.want, got) {
+					t.Errorf("Traverse() = (%+v), want = (%+v)", got, tt.want)
+				}
+			})
+		}
+	})
+
+	t.Run("TestTraverseInt", func(t *testing.T) {
+		tests := []struct {
+			name      string
+			tree      any
+			filter    func(Node) bool
+			want      []int64
+			wantFound bool
+		}{
+			{
+				name:      "Traverse all integers",
+				tree:      testData,
+				filter:    NoneFilter,
+				want:      []int64{42, 32, 64, 100, 123, 999, 30, 25},
+				wantFound: true,
+			},
+			{
+				name: "Traverse integers greater than 50",
+				tree: testData,
+				filter: func(n Node) bool {
+					return n.Value.Int() > 50
+				},
+				want:      []int64{64, 100, 123, 999},
+				wantFound: true,
+			},
+			{
+				name: "Traverse integers by key",
+				tree: testData,
+				filter: func(n Node) bool {
+					return n.Key == "age"
+				},
+				want:      []int64{30, 25},
+				wantFound: true,
+			},
+			{
+				name: "Traverse integers empty result",
+				tree: testData,
+				filter: func(n Node) bool {
+					return n.Value.Int() > 1000
+				},
+				want:      []int64{},
+				wantFound: false,
+			},
+			{
+				name:      "Traverse integers nil tree",
+				tree:      nil,
+				filter:    NoneFilter,
+				want:      []int64{},
+				wantFound: false,
+			},
+		}
+
+		for _, tt := range tests {
+			t.Run(tt.name, func(t *testing.T) {
+				got, gotFound := TraverseInt(tt.tree, tt.filter)
+
+				if gotFound != tt.wantFound {
+					t.Errorf("TraverseInt() found = %v, want %v", gotFound, tt.wantFound)
+					return
+				}
+
+				if !EqualSlices(t, tt.want, got) {
+					t.Errorf("Traverse() = (%+v), want = (%+v)", got, tt.want)
+				}
+			})
+		}
+	})
+
+	t.Run("TestTraverseFloat", func(t *testing.T) {
+		tests := []struct {
+			name      string
+			tree      any
+			filter    func(Node) bool
+			want      []float64
+			wantFound bool
+		}{
+			{
+				name:      "Traverse all floats",
+				tree:      testData,
+				filter:    NoneFilter,
+				want:      []float64{float64(float32(3.14)), 6.28, 99.99, 45.67, 123.456, 1250.50, 750.25},
+				wantFound: true,
+			},
+			{
+				name: "Traverse floats greater than 100",
+				tree: testData,
+				filter: func(n Node) bool {
+					return n.Value.Float() > 100
+				},
+				want:      []float64{123.456, 1250.50, 750.25},
+				wantFound: true,
+			},
+			{
+				name: "Traverse floats by key",
+				tree: testData,
+				filter: func(n Node) bool {
+					return n.Key == "balance"
+				},
+				want:      []float64{1250.50, 750.25},
+				wantFound: true,
+			},
+			{
+				name: "Traverse floats empty result",
+				tree: testData,
+				filter: func(n Node) bool {
+					return n.Value.Float() > 2000
+				},
+				want:      []float64{},
+				wantFound: false,
+			},
+			{
+				name:      "Traverse floats nil tree",
+				tree:      nil,
+				filter:    NoneFilter,
+				want:      []float64{},
+				wantFound: false,
+			},
+		}
+
+		for _, tt := range tests {
+			t.Run(tt.name, func(t *testing.T) {
+				got, gotFound := TraverseFloat(tt.tree, tt.filter)
+
+				if gotFound != tt.wantFound {
+					t.Errorf("TraverseFloat() found = %v, want %v", gotFound, tt.wantFound)
+					return
+				}
+
+				if !EqualSlices(t, tt.want, got) {
+					t.Errorf("Traverse() = (%+v), want = (%+v)", got, tt.want)
+				}
+			})
+		}
+	})
+
+	t.Run("TestTraverseBool", func(t *testing.T) {
+		tests := []struct {
+			name      string
+			tree      any
+			filter    func(Node) bool
+			want      []bool
+			wantFound bool
+		}{
+			{
+				name:      "Traverse all booleans",
+				tree:      testData,
+				filter:    NoneFilter,
+				want:      []bool{true, true, false, false, true, false},
+				wantFound: true,
+			},
+			{
+				name: "Traverse only true booleans",
+				tree: testData,
+				filter: func(n Node) bool {
+					return n.Value.Bool() == true
+				},
+				want:      []bool{true, true, true},
+				wantFound: true,
+			},
+			{
+				name: "Traverse booleans by key",
+				tree: testData,
+				filter: func(n Node) bool {
+					return n.Key == "active"
+				},
+				want:      []bool{true, false},
+				wantFound: true,
+			},
+			{
+				name: "Traverse booleans empty result",
+				tree: testData,
+				filter: func(n Node) bool {
+					return n.Key == "non_existent_bool"
+				},
+				want:      []bool{},
+				wantFound: false,
+			},
+			{
+				name:      "Traverse booleans nil tree",
+				tree:      nil,
+				filter:    NoneFilter,
+				want:      []bool{},
+				wantFound: false,
+			},
+		}
+
+		for _, tt := range tests {
+			t.Run(tt.name, func(t *testing.T) {
+				got, gotFound := TraverseBool(tt.tree, tt.filter)
+
+				if gotFound != tt.wantFound {
+					t.Errorf("TraverseBool() found = %v, want %v", gotFound, tt.wantFound)
+					return
+				}
+
+				if !EqualSlices(t, tt.want, got) {
+					t.Errorf("Traverse() = (%+v), want = (%+v)", got, tt.want)
+				}
+			})
+		}
+	})
+
+	t.Run("TestTraverseUint", func(t *testing.T) {
+		tests := []struct {
+			name      string
+			tree      any
+			filter    func(Node) bool
+			want      []uint64
+			wantFound bool
+		}{
+			{
+				name:      "Traverse all uints",
+				tree:      testData,
+				filter:    NoneFilter,
+				want:      []uint64{10, 64, 200, 88, 888, 1001, 1002},
+				wantFound: true,
+			},
+			{
+				name: "Traverse uints greater than 100",
+				tree: testData,
+				filter: func(n Node) bool {
+					return n.Value.Uint() > 100
+				},
+				want:      []uint64{200, 888, 1001, 1002},
+				wantFound: true,
+			},
+			{
+				name: "Traverse uints by key",
+				tree: testData,
+				filter: func(n Node) bool {
+					return n.Key == "id"
+				},
+				want:      []uint64{1001, 1002},
+				wantFound: true,
+			},
+			{
+				name: "Traverse uints empty result",
+				tree: testData,
+				filter: func(n Node) bool {
+					return n.Value.Uint() > 2000
+				},
+				want:      []uint64{},
+				wantFound: false,
+			},
+			{
+				name:      "Traverse uints nil tree",
+				tree:      nil,
+				filter:    NoneFilter,
+				want:      []uint64{},
+				wantFound: false,
+			},
+		}
+
+		for _, tt := range tests {
+			t.Run(tt.name, func(t *testing.T) {
+				got, gotFound := TraverseUint(tt.tree, tt.filter)
+
+				if gotFound != tt.wantFound {
+					t.Errorf("TraverseUint() found = %v, want %v", gotFound, tt.wantFound)
+					return
+				}
+
+				if !EqualSlices(t, tt.want, got) {
+					t.Errorf("Traverse() = (%+v), want = (%+v)", got, tt.want)
+				}
+			})
+		}
+	})
 }
