@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"reflect"
 
 	"github.com/Nadim147c/go-tree"
 )
@@ -15,9 +14,14 @@ func main() {
 		},
 	}
 
-	results := gotree.Traverse(data, func(n gotree.Node) bool {
-		return n.Key == "name" && n.Value.Kind() == reflect.String
-	})
+	var filter gotree.FilterFunc = func(n gotree.Node) bool {
+		return n.Key == "name"
+	}
+
+	results, err := gotree.TraverseString(data, filter)
+	if err != nil {
+		panic(err)
+	}
 
 	for _, r := range results {
 		fmt.Println(r)

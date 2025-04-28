@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"reflect"
 
 	"github.com/Nadim147c/go-tree"
 )
@@ -16,9 +15,13 @@ func main() {
 		"active": true,
 	}
 
-	result := gotree.Find(data, func(n gotree.Node) bool {
-		return n.Key == "name" && n.Value.Kind() == reflect.String
-	})
+	var filter gotree.FilterFunc = func(n gotree.Node) bool {
+		return n.FullKey == "user.name"
+	}
+	result, err := gotree.FindString(data, filter)
+	if err != nil {
+		panic(err)
+	}
 
 	fmt.Println(result) // Output: Ephemeral
 }
