@@ -18,6 +18,21 @@ func NoneFilter(_ Node) bool {
 	return true
 }
 
+// FilterString takes key. Returns a FilterFunc that checks if Node.Key == key
+func KeyFilter(key string) FilterFunc {
+	return func(n Node) bool {
+		return n.Key == key
+	}
+}
+
+// FilterString takes fullkey. Returns a FilterFunc that checks if
+// Node.FullKey == fullkey
+func FullKeyFilter(fullkey string) FilterFunc {
+	return func(n Node) bool {
+		return n.FullKey == fullkey
+	}
+}
+
 // FilterString returns a FilterFunc that checks if a node's value is a string
 // type and satisfies the provided filter condition.
 func FilterString(filter FilterFunc) FilterFunc {
