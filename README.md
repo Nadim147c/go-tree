@@ -24,18 +24,25 @@ See the [example](./example/) directory for practical examples.
 
 ## How it Works
 
-`go-tree` provides two main capabilities:
+`go-tree` provides following capabilities:
 
 ### Find
 
-- **Use `Find<Type>`** (`FindString`, `FindBool`, `FindInt`, `FindUint`, `FindFloat`) when you want to **find a primitive value**.
-  These functions automatically **checks the type** before running filter function.
-- **Use `Find`** (generic) only when you want to **find a branch** (a nested map, slice, struct, etc.) for **further processing** with `Find<Type>` or `Traverse<Type>`.
+- `Find<Type>` functions (`FindString`, `FindBool`, `FindInt`, `FindUint`, `FindFloat`) scan the tree and return the **first primitive value** of the specified type that satisfies the filter.
+- Type checks are performed **before** the filter is applied, ensuring only correctly-typed values are evaluated.
+- The generic `Find` function returns the first matching **branch** (e.g., `map`, `slice`, `struct`) without performing type filtering — useful for targeting nested structures for deeper inspection.
 
 ### Traverse
 
-- **Use `Traverse<Type>`** (`TraverseString`, `TraverseBool`, `TraverseInt`, `TraverseUint`, `TraverseFloat`) to **collect multiple primitive values** from the structure, with **type checking** before running filter function.
-- **Use `Traverse`** (generic) when you want to **collect branches** (complex nested structures) for further analysis.
+- `Traverse<Type>` functions collect **all primitive values** of the specified type that match the filter. These include `TraverseString`, `TraverseBool`, `TraverseInt`, `TraverseUint`, and `TraverseFloat`.
+- Type enforcement is done before applying the filter, ensuring that only relevant values are processed.
+- The generic `Traverse` collects **all matching branches**, useful for aggregating nested collections of interest, regardless of their concrete type.
+
+### Has
+
+- `Has<Type>` functions (`HasString`, `HasBool`, `HasInt`, `HasUInt`, `HasFloat`) traverse the structure and return `true` if **any value of the specified type** satisfies the filter function.
+- These functions **automatically perform type checking** before applying the filter, which simplifies filter logic but also restricts it to only matching values of the expected type.
+- The generic `Has` does **not enforce type constraints**, making it useful when the filter logic needs to inspect or match across **multiple types or complex conditions**.
 
 # Summary
 
